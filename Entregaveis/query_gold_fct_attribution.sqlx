@@ -1,0 +1,20 @@
+SELECT ID_USUARIO, EMAIL, NUMERO_TELEFONE , DATA_CONVERSAO,
+-- Definindo pesos (○ Peso 1 (Maior): WhatsApp Read, Peso 2 (Médio): Email Click, 3 (Menor): Email Open)
+CASE WHEN WPP_DATA.STATUS_ENVIO = 'read' THEN 1
+WHEN EMAIL_DATA.TIPO_EVENTO = 'click' THEN 2
+WHEN EMAIL_DATA.TIPO_EVENTO = 'open' THEN 3
+ELSE 5
+END AS PESO_INTERACAO
+FROM silver_crm_user USER_DATA
+LEFT JOIN silver_email_logs EMAIL_DATA ON USER_DATA.EMAIL = EMAIL_DATA.EMAIL_USUARIO
+-- Interações ocorridas nos 7 dias anteriores à conversão email
+AND EMAIL_DATA.DATA_EVENTO BETWEEN USER_DATA.DATA_CONVERSAO - INTERVAL '7 DAYS' AND USER_DATA.DATA_CONVERSAO
+
+LEFT JOIN silver_whatsapp_provider WPP_DATA ON USER_DATA.NUMERO_TELEFONE = WPP_DATA.NUMERO_TELEFONE
+-- Interações ocorridas nos 7 dias anteriores à conversão wpp
+AND WPP_DATA.DATA_ENVIO BETWEEN USER_DATA.DATA_CONVERSAO - INTERVAL '7 DAYS' AND USER_DATA.DATA_CONVERSAO
+
+-- Somente trazer dados dos usuários que tiveram conversão
+WHERE DATA_CONVERSAO IS NOT NULL
+-- Utilizando Qualify para pegar somente o registro com maior peso de interacao por usuário
+QUALIFY ROW_NUMBER() OVER (PARTITION BY USER_DATA.ID_USUARIO ORDER BY PESO_INTERACAO ASC, COALESCE(DATA_ENVIO, DATA_EVENTO) DESC) = 1

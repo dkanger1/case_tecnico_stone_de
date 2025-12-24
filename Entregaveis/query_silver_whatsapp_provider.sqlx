@@ -1,0 +1,9 @@
+SELECT message_id as ID_MENSAGEM,
+-- Padronizando numero de telefone aplicando mesma regra em phone_clean
+CAST(REGEXP_REPLACE(phone_clean, '[^0-9]', '', 'g') AS VARCHAR) as NUMERO_TELEFONE,
+--Padronizando data para fuso horário de SP
+CAST(sent_at_brt AS TIMESTAMP) AT TIME ZONE 'America/Sao_Paulo' AS DATA_ENVIO,
+status as STATUS_ENVIO,
+-- Tratando nome da campanha
+TRIM(REPLACE(REGEXP_EXTRACT(campaign_tag, '-\s*([^-\s]+)\s*-'), '-', '')) as TAG_CAMPANHA
+FROM bronze.whatsapp_provider

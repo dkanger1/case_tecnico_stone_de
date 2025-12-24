@@ -1,0 +1,8 @@
+SELECT user_id as ID_USUARIO,
+-- padronizando email
+lower(email) as EMAIL,
+-- Removendo caracteres não numericos da coluna telefone, mas mantendo como string
+CAST(REGEXP_REPLACE(phone, '[^0-9]', '', 'g') AS VARCHAR) AS NUMERO_TELEFONE,
+--Formatando para fuso horário de SP
+CAST(conversion_at AS TIMESTAMP) AT TIME ZONE 'America/Sao_Paulo' AS DATA_CONVERSAO
+FROM bronze.crm_user

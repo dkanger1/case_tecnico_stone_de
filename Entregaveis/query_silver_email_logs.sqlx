@@ -1,0 +1,11 @@
+SELECT event_id AS ID_EVENTO,
+-- Padronizando formatação de email
+lower(user_email) as EMAIL_USUARIO,
+-- Formatando data para fuso horário de SP
+CAST(event_timestamp AS TIMESTAMP) AT TIME ZONE 'America/Sao_Paulo' AS DATA_EVENTO,
+event_type as TIPO_EVENTO,
+-- Extraindo e limpando dados do campaign_code
+REPLACE(json_extract(message_details, '$.campaign_code'), '"','') AS CODIGO_CAMPANHA
+FROM bronze.email_logs
+WHERE
+json_valid(message_details) = TRUE
